@@ -24,16 +24,56 @@ void main() {
      GPIOE_CRH = 0x33333333;
 //******************************************************************************
 //Objective 2
-          GPIOE_ODR = num1;   //sets GPIOE equal to num1 variable which will then be displayed on the MET1155
+     GPIOE_ODR = num1;   //sets GPIOE equal to num1 variable which will then be displayed on the MET1155
 //******************************************************************************
-     while(1){
 //Objective 3
-          if(GPIOA_IDR.B0 == 1){
-               prevPA0 = 1;
-          }
-          if(GPIOA_IDR.B0 == 0 & prevPA0 == 1){
-               GPIOE_ODR.B11 = ~GPIOE_ODR.B11;
-               prevPA0 = 0;
-          }
+     asm{
+          LOOP:
+               MOVW R0, #LO_ADDR(GPIOA_IDR+0)       ;Puts the low address of GPIOA_IDR into R0
+               MOVT R0, #HI_ADDR(GPIOA_IDR+0)       ;Puts the high address of GPIOA_IDR into R0
+               LDR R1, [R0]                         ;Loads the value saved in R1 into the register with its address saved in R0, in
+                                                    ;this case GPIOA_IDR
+               AND R3, R1, #1                       ;ANDs R1 with the number 1 in order to clear any high bits in the upper 32 bits
+                                                    ;of the register.
+               CMP R3, #1                           ;If PA0 is pressed GPIOA_IDR has a value of 1 so R1 is compared to 1 and if
+                                                    ;they are the same jumps to LABEL2
+               BEQ PAZero
+          B LOOP
+               
+          PAZero:
+               MOVW R0, #LO_ADDR(GPIOA_IDR+0)       ;Puts the low address of GPIOA_IDR into R0
+               MOVT R0, #HI_ADDR(GPIOA_IDR+0)       ;Puts the high address of GPIOA_IDR into R0
+               LDR R1, [R0]                         ;Loads the value saved in R1 into the register with its address saved in R0, in
+                                                    ;this case GPIOA_IDR
+               AND R3, R1, #1                       ;ANDs R1 with the number 1 in order to clear any high bits in the upper 32 bits
+                                                    ;of the register.
+               CMP R3, #1                           ;If PA0 is pressed GPIOA_IDR has a value of 1 so R1 is compared to 1 and if
+                                                    ;they are the same jumps to LABEL2
+               BEQ PAZero
+               
+               MOVW R0, #LO_ADDR(_num1)       ;Puts the low address of num1 into R0
+               MOVT R0, #HI_ADDR(_num1)       ;Puts the high address of num1 into R0
+               LDR R2, [R0]
+               
+               AND R3, R2, #0x800
+               CMP R3, #0x800
+               BEQ SetLow
+               B SetHigh
+          
+          SetLow:
+               AND R2, #0xFFFFF7FF
+          B Display
+          
+          SetHigh:
+               ADD R2, #0x800
+          B Display
+          
+          Display:
+               MOVW R0, #LO_ADDR(GPIOD_ODR+0)  ;Get the low address of GPIOD_ODR
+               MOVT R0, #HI_ADDR(GPIOD_ODR+0)  ;Get the high address of GPIOD_ODR
+               STR R2, [R0]                    ;Puts the value that is saved in R2 into the register whos address is saved in
+          B LOOP
+               
      }
+     
 }
