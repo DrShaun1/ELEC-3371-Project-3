@@ -53,7 +53,7 @@ void main() {
                
                MOVW R0, #LO_ADDR(_num1)       ;Puts the low address of num1 into R0
                MOVT R0, #HI_ADDR(_num1)       ;Puts the high address of num1 into R0
-               LDR R2, [R0]
+               LDR R2, [R0]                   ;puts the value of num1 into R2
                
                AND R3, R2, #0x800
                CMP R3, #0x800
@@ -61,7 +61,8 @@ void main() {
                B SetHigh
           
           SetLow:
-               AND R2, #0xFFFFF7FF
+               MOVW R4, #0xF7FF
+               AND R2, R4
           B Display
           
           SetHigh:
@@ -69,9 +70,13 @@ void main() {
           B Display
           
           Display:
-               MOVW R0, #LO_ADDR(GPIOD_ODR+0)  ;Get the low address of GPIOD_ODR
-               MOVT R0, #HI_ADDR(GPIOD_ODR+0)  ;Get the high address of GPIOD_ODR
+               MOVW R0, #LO_ADDR(GPIOE_ODR+0)  ;Get the low address of GPIOE_ODR
+               MOVT R0, #HI_ADDR(GPIOE_ODR+0)  ;Get the high address of GPIOE_ODR
                STR R2, [R0]                    ;Puts the value that is saved in R2 into the register whos address is saved in
+               
+               MOVW R0, #LO_ADDR(_num1)       ;Puts the low address of num1 into R0
+               MOVT R0, #HI_ADDR(_num1)       ;Puts the high address of num1 into R0
+               STR R2, [R0]                   ;puts the value of num1 into R2
           B LOOP
                
      }
